@@ -457,12 +457,12 @@ class XapianSearchBackend(BaseSearchBackend):
             return 0
 
     @log_query
-    def search(self, query_string, **kwargs):
+    def search(self, query, **kwargs):
         """
-        Executes the Xapian::query as defined in `query_string`.
+        Executes the Xapian::query as defined in `query`.
 
         Required arguments:
-            `query_string` -- Search query to execute
+            `query` -- Search query to execute
 
         Optional arguments:
             `sort_by` -- Sort results by specified field (default = None)
@@ -489,14 +489,14 @@ class XapianSearchBackend(BaseSearchBackend):
                     `queries` -- A list of query facets
             If faceting was not used, the `facets` key will not be present
 
-        If `query_string` is None, returns no results.
+        If `query` is None, returns no results.
 
         If `INCLUDE_SPELLING` was enabled in the connection options, the
         extra flag `FLAG_SPELLING_CORRECTION` will be passed to the query parser
         and any suggestions for spell correction will be returned as well as
         the results.
         """
-        if xapian.Query.empty(query_string):
+        if query.empty():
             return {
                 'results': [],
                 'hits': 0,
@@ -529,11 +529,9 @@ class XapianSearchBackend(BaseSearchBackend):
             result_class = SearchResult
 
         if self.include_spelling is True:
-            spelling_suggestion = self._do_spelling_suggestion(database, query_string, spelling_query)
+            spelling_suggestion = self._do_spelling_suggestion(database, query, spelling_query)
         else:
             spelling_suggestion = ''
-
-        query = query_string
 
         if narrow_queries is not None:
             query = xapian.Query(
@@ -586,7 +584,7 @@ class XapianSearchBackend(BaseSearchBackend):
 
             ((min_lat, min_lng), (max_lat, max_lng)) = generate_bounding_box(within['point_1'], within['point_2'])
 
-            #LatLongBoundingCoordinates
+            #LatLongBoundingPostingSource
             raise NotImplemented
 
         if dwithin is not None:
